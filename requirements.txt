@@ -1,0 +1,23 @@
+# Agent orchestration
+langgraph
+langchain-core
+langchain-openai
+
+# User interface
+streamlit>=1.53.0
+
+# OpenAI API
+openai
+
+# Model Context Protocol
+mcp
+
+# Configuration
+python-dotenv
+
+# Data validation
+pydantic
+
+# Knowledge-base processing
+langchain-text-splitters
+pypdf

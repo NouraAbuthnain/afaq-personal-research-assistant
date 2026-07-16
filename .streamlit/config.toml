@@ -1,0 +1,20 @@
+[theme]
+base = "light"
+primaryColor = "#3b76c4"
+backgroundColor = "#f5fff9"
+secondaryBackgroundColor = "#e8f1fa"
+textColor = "#0f1c37"
+linkColor = "#3b76c4"
+borderColor = "#c8d9ee"
+showWidgetBorder = true
+baseRadius = "large"
+buttonRadius = "large"
+
+[theme.sidebar]
+backgroundColor = "#e8f1fa"
+secondaryBackgroundColor = "#c8d9ee"
+textColor = "#0f1c37"
+borderColor = "#c8d9ee"
+
+[server]
+runOnSave = true

@@ -1,0 +1,27 @@
+PERSONAL TASKS
+Last updated: 2026-07-16
+
+WORK
+[ ] Follow up with data team re: eval dataset access (blocking Priya)
+[ ] Review Omar's LangGraph prototype PR before Tuesday sync
+[ ] Read Yusuf's MCP server spike notes, flag any security concerns
+[ ] Draft tool-scoping policy doc for MCP servers (due before anything goes past dev)
+[ ] Prep slides for Tuesday July 15 sync — checkpoint storage + MCP spike review
+[x] Send calendar invite for July 15 sync
+[ ] Ping Lina when she's back from PTO, catch her up on Atlas decisions
+
+LEARNING / READING
+[ ] Finish reading LangGraph docs on human-in-the-loop interrupts
+[ ] Skim the MCP 2026 roadmap doc Yusuf shared
+[ ] Look into pgvector vs. dedicated vector DB benchmarks before Priya's review
+
+PERSONAL
+[ ] Book dentist appointment
+[ ] Renew gym membership (expires end of month)
+[ ] Reply to Ahmed re: weekend plans
+[ ] Order replacement charger
+[ ] Groceries: coffee, eggs, dates, olive oil
+
+ADMIN
+[ ] Submit expense report for conference travel
+[ ] Update calendar with next quarter's team offsite dates
