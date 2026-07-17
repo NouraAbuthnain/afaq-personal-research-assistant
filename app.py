@@ -23,7 +23,7 @@ from tools.speech_tools import (
 APP_NAME = "Afaq"
 APP_NAME_AR = "آفاق"
 APP_SUBTITLE = "Personal Research Assistant"
-APP_SLOGAN = "See Beyond the Horizon"
+APP_SLOGAN = "See Beyond the Horizon."
 
 BASE_DIR = Path(__file__).resolve().parent
 PAGE_ICON_PATH = BASE_DIR / "assets" / "page_icon.png"
