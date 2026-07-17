@@ -228,98 +228,36 @@ For combined personal and external research requests, Knowledge and Research ret
 ---
 ## Shared State
 
-All workflow components communicate through a typed `ResearchAssistantState`.
-
-Important fields include:
+All workflow components communicate through a shared typed `ResearchAssistantState`, which stores the information required for routing and coordination.
 
 | Field | Purpose |
 |---|---|
-| `messages` | Conversation messages |
-| `user_request` | Original user request |
-| `intent` | Classified workflow intent |
-| `plan` | Ordered execution plan |
-| `selected_routes` | Specialist routes selected by the Executive Agent |
-| `knowledge_query` | Query sent to the Knowledge Agent |
-| `knowledge_findings` | Grounded findings from personal documents |
-| `research_query` | Query sent to the Research Agent |
-| `research_findings` | Grounded external findings |
-| `citations` | Personal or external source references |
-| `draft_report` | Generated report content |
-| `file_operation` | Requested workspace operation |
-| `file_path` | User-specified relative workspace path |
-| `file_content` | File content for read or write operations |
-| `saved_path` | Confirmed path after a successful save |
-| `requires_confirmation` | Whether human approval is needed |
-| `pending_action` | File action waiting for approval |
-| `workflow_status` | Current execution status |
-| `step_count` | Number of workflow steps completed |
-| `error_count` | Number of recorded workflow errors |
-| `final_response` | Final user-facing response |
+| `messages` | Conversation history |
+| `intent` | Classified request type |
+| `plan` | Execution plan |
+| `knowledge_findings` | Retrieved personal knowledge |
+| `research_findings` | Retrieved external research |
+| `citations` | Source references |
+| `draft_report` | Generated report |
+| `file_path` | Workspace file path |
+| `workflow_status` | Current workflow status |
+| `final_response` | Final response returned to the user |
 
-Append-style reducers are used for fields such as findings, citations, messages, and errors when multiple nodes may contribute values.
-
-Replace-style updates are used for singular workflow fields such as intent, file path, draft report, and status.
+Collection fields (e.g., messages, findings, and citations) use append-style reducers, while single-value fields (e.g., intent, file path, and status) are replaced as the workflow progresses.
 
 ---
 ## Communication Patterns
 
-Afaq uses typed shared state rather than unrestricted free-text messages between agents.
+Afaq uses a shared typed LangGraph state instead of unrestricted free-text communication between agents. This improves validation, reliability, and workflow coordination.
 
-Typed communication improves:
+The system uses four communication patterns:
 
-- Validation
-- Reliability
-- Debugging
-- Traceability
-- Safe routing
-- Concurrent state merging
-- Structured error handling
-
-The architecture uses the following communication patterns:
-
-| Pattern | Usage |
+| Pattern | Purpose |
 |---|---|
-| **Request/Response** | The Executive Agent routes a request to a specialist and waits for its result. |
-| **Handoff** | Research findings are handed to Report Generation with ownership of document synthesis. |
-| **Blackboard** | Agents read from and write to the shared LangGraph state. |
-| **Human-in-the-Loop** | The graph pauses before overwriting an existing file. |
-
-Conceptually, agent messages follow an envelope such as:
-
-```json
-{
-  "id": "message-001",
-  "sender": "executive",
-  "recipient": "research",
-  "type": "request",
-  "payload": {
-    "query": "Model Context Protocol"
-  },
-  "timestamp": "2026-07-17T12:00:00Z"
-}
-```
-
-Matching response:
-
-```json
-{
-  "id": "message-002",
-  "sender": "research",
-  "recipient": "executive",
-  "type": "response",
-  "payload": {
-    "status": "answered",
-    "summary": "The Model Context Protocol standardizes integrations between AI applications and external tools.",
-    "sources": [
-      {
-        "title": "Model Context Protocol",
-        "url": "https://en.wikipedia.org/wiki/Model_Context_Protocol"
-      }
-    ]
-  },
-  "timestamp": "2026-07-17T12:00:05Z"
-}
-```
+| **Request/Response** | The Executive Agent invokes specialist agents and receives their results. |
+| **Handoff** | Research findings are passed to Report Generation. |
+| **Blackboard** | Agents communicate through the shared workflow state. |
+| **Human-in-the-Loop** | The workflow pauses for user approval before overwriting files. |
 
 ---
 ## Tools and MCP Servers
@@ -445,19 +383,14 @@ Maximum errors: 3
 ---
 ## Prompting Strategy
 
-Different prompting methods are used based on each component's role.
+Each component uses prompts specialized for its role:
 
-| Component | Prompting Techniques |
-|---|---|
-| Executive Agent | Role prompting, request decomposition, structured Pydantic output, deterministic validation, routing guardrails |
-| General Assistant | Role prompting, concise conversational instructions |
-| Knowledge Agent | Grounding, source citation, structured output, refusal when evidence is missing |
-| Research Agent | Research planning, decomposition, structured output, exact-source preservation, grounding |
-| Report Generation | Structured document generation, evidence-only synthesis, consistent comparison criteria |
-| Workspace Agent | Deterministic execution, least-privilege rules, path validation, overwrite guardrails |
-| Final Response | Verified-result grounding, concise response composition, exact path preservation |
-
-The model is never trusted to directly confirm that a file was saved. A successful Filesystem MCP response is required before the final response reports a saved path.
+- Executive: routing and planning
+- Knowledge: grounded retrieval
+- Research: evidence-based summarization
+- Report Generation: structured writing
+- Workspace: deterministic execution
+- Final Response: response synthesis
 
 ---
 ## Checkpointing and Conversation Isolation
@@ -553,90 +486,19 @@ A short demonstration of the voice functionality is available below.
 ---
 ## Project Structure
 
-```text
 afaq-personal-research-assistant/
-│
-├── .streamlit/
-│   └── config.toml
-│
 ├── agents/
-│   ├── __init__.py
-│   ├── executive.py
-│   ├── general.py
-│   ├── knowledge.py
-│   ├── report_generator.py
-│   ├── research.py
-│   └── workspace.py
-│
 ├── assets/
-│   ├── images/
-│   │   ├── approval.jpg
-│   │   ├── home.jpg
-│   │   ├── knowledge.jpg
-│   │   ├── report_generation.jpg
-│   │   ├── research.jpg
-│   │   └── workspace.jpg
-│   │
-│   ├── videos/
-│   │   └── voice_demo.mp4
-│   │
-│   ├── afaq_logo.png
-│   └── page_icon.png
-│
-├── dev/
-│   ├── test_executive.py
-│   ├── test_final_response.py
-│   ├── test_general.py
-│   ├── test_graph.py
-│   ├── test_knowledge.py
-│   ├── test_report.py
-│   ├── test_research.py
-│   └── test_workspace.py
-│
 ├── knowledge_base/
-│   ├── articles/
-│   │   ├── agent_memory_hyphaedb.pdf
-│   │   ├── hierarchical_agent_architecture.pdf
-│   │   ├── multi_agent_math_framework.pdf
-│   │   └── vector_databases_article.pdf
-│   │
-│   └── notes/
-│       ├── langgraph_notes.md
-│       ├── last_week_meeting.md
-│       ├── mcp_notes.md
-│       ├── personal_tasks.txt
-│       └── project_decisions.md
-│
 ├── mcp_servers/
-│   ├── __init__.py
-│   ├── filesystem_server.py
-│   └── wikipedia_server.py
-│
 ├── prompts/
-│   ├── __init__.py
-│   └── system_prompts.py
-│
 ├── tools/
-│   ├── __init__.py
-│   ├── knowledge_tools.py
-│   ├── research_tools.py
-│   ├── speech_tools.py
-│   └── workspace_tools.py
-│
 ├── workspace/
-│   └── reports/
-│       └── .gitkeep
-│
-├── Week2_Design_Document.pdf
-├── .env.example
-├── .gitignore
-├── README.md
 ├── app.py
-├── config.py
 ├── graph.py
+├── README.md
 ├── requirements.txt
-└── state.py
-```
+└── Week2_Design_Document.pdf
 
 ---
 ## Installation
@@ -735,133 +597,79 @@ http://localhost:8501
 ## Example Requests
 
 ### General Assistance
+
 ```text
 Explain the difference between an AI agent and a chatbot.
 ```
 
 ### Personal Knowledge Retrieval
+
 ```text
 What is in my note about last week's meeting?
 ```
 
-```text
-What does my LangGraph note say about Command objects?
-```
-
-```text
-Summarize my article about vector databases.
-```
-
 ### External Research
+
 ```text
 Look up the Model Context Protocol and summarize it.
 ```
 
-```text
-Look up PostgreSQL and summarize its main features.
-```
-
-```text
-Compare PostgreSQL, MySQL, and MongoDB.
-```
-
 ### Research and Report Generation
-```text
-Research and compare Linux, Microsoft Windows, and macOS
-in terms of security, customization, strengths, and limitations,
-then save a Markdown report to reports/os-comparison.md.
-```
 
 ```text
-Research and compare PostgreSQL, MySQL, and MongoDB
-based on database model, scalability, use cases, advantages,
-and limitations, then save the report to
-reports/database-comparison.md.
+Research and compare PostgreSQL, MySQL, and MongoDB based on
+database model, scalability, use cases, advantages, and limitations,
+then save the report to reports/database-comparison.md.
 ```
 
 ### Workspace Operations
-
-```text
-List all files in my reports folder.
-```
 
 ```text
 Read reports/database-comparison.md.
 ```
 
 ```text
-Create notes/project-summary.txt with the text:
-Afaq uses LangGraph and MCP.
-```
-
-```text
-Update reports/database-comparison.md with the revised report.
+List all files in my reports folder.
 ```
 
 ---
 ## Development Tests
 
-Manual test scripts are available in the `dev/` folder.
+Run any manual test from the `dev/` directory, for example:
 
 ```bash
 python -m dev.test_graph
-```
-
-Other available tests:
-
-- `test_executive`
-- `test_general`
-- `test_knowledge`
-- `test_research`
-- `test_report`
-- `test_workspace`
-- `test_final_response`
 
 
 ---
 ## Technologies
 
-| Technology | Purpose |
-|---|---|
-| **Python** | Core application development |
-| **LangGraph** | Graph-based orchestration, routing, checkpointing, and interrupts |
-| **LangChain Core** | Message and LLM integration |
-| **LangChain OpenAI** | OpenAI chat-model integration |
-| **OpenAI API** | Language model, Speech-to-Text, and Text-to-Speech |
-| **Streamlit** | Unified conversational user interface |
-| **Model Context Protocol** | Standardized research and filesystem tool integration |
-| **Pydantic** | Typed and validated model outputs |
-| **PyPDF** | PDF text extraction |
-| **LangChain Text Splitters** | Knowledge-document chunking |
-| **python-dotenv** | Environment variable loading |
+- Python
+- LangGraph
+- LangChain
+- OpenAI API
+- Streamlit
+- MCP
+- Pydantic
+- PyPDF
 
 ---
 ## Requirements Coverage
 
 | Project Requirement | Implementation |
 |---|---|
-| Orchestrator | Executive Agent and LangGraph routing |
-| General Assistant | `agents/general.py` |
-| Personal knowledge retrieval | Knowledge Agent and local knowledge tools |
-| Grounded citations | Verified source paths and URLs |
-| External wiki research | Wikipedia MCP server |
-| Research summarization | Research Agent structured output |
-| Report generation | `agents/report_generator.py` |
-| File creation | Filesystem MCP `create_file` |
-| File reading | Filesystem MCP `read_file` |
-| File updating | Filesystem MCP `update_file` |
-| File listing | Filesystem MCP `list_files` |
-| Safe workspace | Sandboxed path resolution |
-| Save research to a requested path | Research → Report → Workspace workflow |
-| Confirm saved path | Final response includes the verified path |
-| At least one MCP server | Wikipedia and Filesystem MCP servers |
-| Simple interface | Streamlit chat GUI |
-| Human-in-the-loop | LangGraph overwrite interrupt |
-| Shared typed state | `ResearchAssistantState` |
-| Stop conditions | Step limit, error budget, completion, clarification, failure |
-| Conversation separation | Unique LangGraph `thread_id` |
-| README and setup instructions | This document |
-| Speech bonus | STT recording and TTS playback |
+| Orchestration | Executive Agent with LangGraph routing |
+| Personal knowledge retrieval | Knowledge Agent with grounded citations |
+| External research | Research Agent using the Wikipedia MCP server |
+| Report generation | Report Generator with Markdown output |
+| Workspace operations | Filesystem MCP (create, read, update, list) |
+| Safe file handling | Sandboxed workspace with overwrite confirmation |
+| Shared state | `ResearchAssistantState` |
+| Workflow management | Stop conditions, thread isolation, and human approval |
+| User interface | Streamlit chat application |
+| MCP integration | Wikipedia and Filesystem MCP servers |
+| Voice bonus | Speech-to-Text (STT) and Text-to-Speech (TTS) |
+| Documentation | README, setup instructions, and Week 2 design document |
 
 ---
 ## Changes from the Week 2 Design
@@ -892,28 +700,23 @@ The implementation follows the Week 2 design with a few practical refinements:
 
 ---
 ## Limitations
-- Wikipedia may not contain dedicated pages for every product or emerging technology.
-- The Knowledge Agent currently uses local document retrieval rather than a production vector database.
-- Checkpoint state is stored in memory and is not retained after the application process stops.
-- The application is designed for a single knowledge worker and does not include authentication.
-- Report quality depends on the coverage of the retrieved sources.
-- Speech requires access to the configured OpenAI audio models.
+
+- External research depends on the coverage of available Wikipedia articles.
+- Knowledge retrieval uses local document search rather than a vector database.
+- Checkpoints are stored in memory and are not persisted across sessions.
+- The application is designed for a single user and does not include authentication.
+- Voice features require access to the configured OpenAI audio models.
 
 ---
+
 ## Future Improvements
 
-- Add semantic retrieval with embeddings and a vector database
-- Add broader web-search MCP servers
-- Add persistent PostgreSQL or SQLite checkpointing
-- Add user authentication and separate knowledge bases
-- Add document upload and automatic indexing
-- Add streaming research progress
-- Add real-time voice conversation
-- Add support for additional report formats such as DOCX
-- Add automated evaluation for citation correctness
-- Add observability, tracing, and token-usage monitoring
-- Add more granular file-editing operations such as append and patch
-- Add deployment configuration for Streamlit Community Cloud
+- Add semantic retrieval with embeddings and a vector database.
+- Support broader web-search MCP servers.
+- Persist workflow checkpoints using PostgreSQL or SQLite.
+- Add user authentication and document upload.
+- Support additional report formats (e.g., DOCX).
+- Improve observability, evaluation, and deployment.
 
 ---
 ## Author
