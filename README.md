@@ -639,7 +639,7 @@ Run any manual test from the `dev/` directory, for example:
 
 ```bash
 python -m dev.test_graph
-
+```
 
 ---
 ## Technologies
